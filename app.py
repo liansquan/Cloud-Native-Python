@@ -4,6 +4,7 @@ from flask import Flask, request
 from flask import jsonify
 from flask import abort
 from flask import make_response
+from flask import render_template
 import json
 import sqlite3
 
@@ -187,7 +188,7 @@ def list_tweets():
     conn.close()
     return jsonify({'tweets_list': api_list})
 
-
+#######################################################################################
 @app.route('/api/v2/tweets', methods=['POST'])
 def add_tweets():
     data_json = request.form.to_dict()
@@ -213,6 +214,36 @@ def add_tweet(user_tweet):
         conn.commit()
         conn.close()
         return "Success"
+
+#######################################################################################
+@app.route('/api/v2/tweets/<int:id>', methods=['GET'])
+def get_tweet(id):
+    return list_tweet(id)
+
+
+def list_tweet(user_id):
+    print(user_id)
+    conn = sqlite3.connect('mydb.db')
+    print("Opened database successfully")
+    cursor = conn.cursor()
+    cursor.execute("SELECT * from tweets where id=?", (user_id,))
+    data = cursor.fetchall()
+    print(data)
+    if len(data) == 0:
+        abort(404)
+    else:
+        user = {}
+        user['id'] = data[0][0]
+        user['username'] = data[0][1]
+        user['body'] = data[0][2]
+        user['tweet_time'] = data[0][3]
+    conn.close()
+    return jsonify(user)
+
+
+@app.route('/adduser')
+def adduser():
+    return render_template('adduser.html')
 
 #######################################################################################
 #######################################################################################
